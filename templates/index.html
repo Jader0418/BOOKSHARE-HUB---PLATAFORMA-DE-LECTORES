@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block contenido %}
+<h1>📖 Bienvenido a BookShare Hub</h1>
+<p>Comparte y descubre recomendaciones de libros.</p>
+
+<h2>Últimas recomendaciones públicas</h2>
+{% if recomendaciones %}
+    {% for rec in recomendaciones %}
+    <div class="tarjeta">
+        <p><strong>Libro ID:</strong> {{ rec.book_id }}</p>
+        <p><strong>Reseña:</strong> {{ rec.short_review }}</p>
+        <p><strong>Calificación:</strong> {{ rec.rating }}/5 ⭐</p>
+        <p><strong>Estado:</strong> {{ rec.status }}</p>
+    </div>
+    {% endfor %}
+{% else %}
+    <p>No hay recomendaciones todavía.</p>
+{% endif %}
+{% endblock %}

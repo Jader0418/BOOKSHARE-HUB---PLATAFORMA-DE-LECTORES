@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block contenido %}
+<h1>⭐ Recomendaciones públicas</h1>
+
+{% if recomendaciones %}
+    {% for rec in recomendaciones %}
+    <div class="tarjeta">
+        <p><strong>Usuario ID:</strong> {{ rec.user_id }}</p>
+        <p><strong>Libro ID:</strong> {{ rec.book_id }}</p>
+        <p><strong>Reseña:</strong> {{ rec.short_review }}</p>
+        <p><strong>Calificación:</strong> {{ rec.rating }}/5 ⭐</p>
+        <p><strong>Estado:</strong> {{ rec.status }}</p>
+    </div>
+    {% endfor %}
+{% else %}
+    <p>No hay recomendaciones públicas todavía.</p>
+{% endif %}
+{% endblock %}

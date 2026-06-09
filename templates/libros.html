@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block contenido %}
+<h1>📚 Libros registrados</h1>
+
+{% if libros %}
+    {% for libro in libros %}
+    <div class="tarjeta">
+        <h3>{{ libro.title }}</h3>
+        <p><strong>Autor:</strong> {{ libro.author }}</p>
+        <p><strong>ISBN:</strong> {{ libro.isbn }}</p>
+        <p><strong>Año:</strong> {{ libro.published_year }}</p>
+    </div>
+    {% endfor %}
+{% else %}
+    <p>No hay libros registrados todavía.</p>
+{% endif %}
+{% endblock %}

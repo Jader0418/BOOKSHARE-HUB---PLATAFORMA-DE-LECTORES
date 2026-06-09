@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>📖 Libros</h2>
+
+<form action="/libros/crear" method="post" class="form-card">
+    <h3>Agregar libro</h3>
+    <input type="text" name="title" placeholder="Título" required>
+    <input type="text" name="author" placeholder="Autor" required>
+    <input type="text" name="isbn" placeholder="ISBN (opcional)">
+    <input type="number" name="published_year" placeholder="Año de publicación">
+    <button type="submit" class="btn">Agregar</button>
+</form>
+
+<div class="card-grid">
+    {% for libro in libros %}
+    <div class="card">
+        {% if libro.cover_url %}
+        <img src="{{ libro.cover_url }}" alt="{{ libro.title }}">
+        {% endif %}
+        <h3>{{ libro.title }}</h3>
+        <p>✍️ {{ libro.author }}</p>
+        {% if libro.published_year %}
+        <p>📅 {{ libro.published_year }}</p>
+        {% endif %}
+        <a href="/libros/{{ libro.id }}" class="btn-small">Ver detalle</a>
+    </div>
+    {% else %}
+    <p>No hay libros registrados aún.</p>
+    {% endfor %}
+</div>
+{% endblock %}
