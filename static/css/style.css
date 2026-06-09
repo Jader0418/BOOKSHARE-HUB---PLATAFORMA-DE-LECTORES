@@ -10,6 +10,7 @@ body {
     color: #333;
 }
 
+/* ─── NAVBAR ─────────────────────────────────────── */
 nav {
     background-color: #2c3e50;
     padding: 15px 30px;
@@ -27,6 +28,7 @@ nav a:hover {
     color: #3498db;
 }
 
+/* ─── CONTENIDO PRINCIPAL ────────────────────────── */
 main {
     max-width: 900px;
     margin: 30px auto;
@@ -43,6 +45,13 @@ h2 {
     color: #34495e;
 }
 
+p {
+    margin-bottom: 10px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+/* ─── TARJETAS ───────────────────────────────────── */
 .tarjeta {
     background: white;
     border-radius: 8px;
@@ -59,4 +68,44 @@ h2 {
 .tarjeta p {
     margin-bottom: 5px;
     font-size: 14px;
+}
+
+/* ─── FORMULARIOS ────────────────────────────────── */
+form {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+button {
+    background-color: #2c3e50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+button:hover {
+    background-color: #3498db;
+}
+
+/* ─── MENSAJES VACÍOS ────────────────────────────── */
+.vacio {
+    color: #999;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
 }
