@@ -2,6 +2,36 @@
 {% block contenido %}
 <h1>⭐ Recomendaciones públicas</h1>
 
+<h2>Publicar recomendación</h2>
+<form action="/recomendaciones/crear" method="post">
+    <input type="number" name="user_id" placeholder="Tu ID de usuario" required>
+    <input type="number" name="book_id" placeholder="ID del libro" required>
+    <textarea name="short_review" placeholder="Tu reseña (mínimo 5 caracteres)" required></textarea>
+    <select name="rating">
+        <option value="1">⭐ 1</option>
+        <option value="2">⭐⭐ 2</option>
+        <option value="3">⭐⭐⭐ 3</option>
+        <option value="4">⭐⭐⭐⭐ 4</option>
+        <option value="5" selected>⭐⭐⭐⭐⭐ 5</option>
+    </select>
+    <select name="status">
+        <option value="read">Leído</option>
+        <option value="reading">Leyendo</option>
+        <option value="want_to_read">Quiero leer</option>
+    </select>
+    <select name="visibility">
+        <option value="PUBLIC">🌍 Público</option>
+        <option value="FRIENDS">👫 Solo amigos</option>
+        <option value="PRIVATE">🔒 Privado</option>
+    </select>
+    <button type="submit">📝 Publicar recomendación</button>
+</form>
+
+{% if error %}
+    <p class="error">{{ error }}</p>
+{% endif %}
+
+<h2>Recomendaciones públicas</h2>
 {% if recomendaciones %}
     {% for rec in recomendaciones %}
     <div class="tarjeta">
@@ -10,9 +40,12 @@
         <p><strong>Reseña:</strong> {{ rec.short_review }}</p>
         <p><strong>Calificación:</strong> {{ rec.rating }}/5 ⭐</p>
         <p><strong>Estado:</strong> {{ rec.status }}</p>
+        <form action="/recomendaciones/eliminar/{{ rec.id }}" method="post">
+            <button type="submit" class="btn-eliminar">🗑️ Eliminar</button>
+        </form>
     </div>
     {% endfor %}
 {% else %}
-    <p>No hay recomendaciones públicas todavía.</p>
+    <p class="vacio">No hay recomendaciones públicas todavía.</p>
 {% endif %}
 {% endblock %}

@@ -2,6 +2,21 @@
 {% block contenido %}
 <h1>📚 Libros registrados</h1>
 
+<h2>Agregar nuevo libro</h2>
+<form action="/libros/crear" method="post">
+    <input type="text" name="title" placeholder="Título del libro" required>
+    <input type="text" name="author" placeholder="Autor" required>
+    <input type="text" name="isbn" placeholder="ISBN (10 o 13 dígitos)" required>
+    <input type="number" name="published_year" placeholder="Año de publicación" required>
+    <input type="text" name="cover_url" placeholder="URL de portada (opcional)">
+    <button type="submit">➕ Agregar libro</button>
+</form>
+
+{% if error %}
+    <p class="error">{{ error }}</p>
+{% endif %}
+
+<h2>Lista de libros</h2>
 {% if libros %}
     {% for libro in libros %}
     <div class="tarjeta">
@@ -9,9 +24,12 @@
         <p><strong>Autor:</strong> {{ libro.author }}</p>
         <p><strong>ISBN:</strong> {{ libro.isbn }}</p>
         <p><strong>Año:</strong> {{ libro.published_year }}</p>
+        <form action="/libros/eliminar/{{ libro.id }}" method="post">
+            <button type="submit" class="btn-eliminar">🗑️ Eliminar</button>
+        </form>
     </div>
     {% endfor %}
 {% else %}
-    <p>No hay libros registrados todavía.</p>
+    <p class="vacio">No hay libros registrados todavía.</p>
 {% endif %}
 {% endblock %}

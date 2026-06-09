@@ -1,21 +1,16 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from sqlmodel import SQLModel
-from database import engine, SessionDep, create_db_and_tables
-from models import (
-    User, Book, BookRecommendation,
-    ReadingListItem, Comment, Tag, BookTag, Friendship
-)
+from fastapi.responses import RedirectResponse
+from database import SessionDep, create_db_and_tables
+from models import Book, BookRecommendation
 import services
 
 app = FastAPI(title="BookShare Hub")
 
-# ─── PLANTILLAS Y ARCHIVOS ESTÁTICOS ─────────────────────────────────────────
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# ─── STARTUP ─────────────────────────────────────────────────────────────────
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
@@ -25,32 +20,104 @@ def on_startup():
 
 @app.get("/")
 def inicio(request: Request, session: SessionDep):
-    libros = services.obtener_libros(session)
     recomendaciones = services.obtener_recomendaciones_publicas(session)
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "libros": libros,
-        "recomendaciones": recomendaciones
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={"recomendaciones": recomendaciones}
+    )
 
 @app.get("/libros")
 def vista_libros(request: Request, session: SessionDep):
     libros = services.obtener_libros(session)
-    return templates.TemplateResponse("libros.html", {
-        "request": request,
-        "libros": libros
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="libros.html",
+        context={"libros": libros}
+    )
 
 @app.get("/recomendaciones")
 def vista_recomendaciones(request: Request, session: SessionDep):
     recomendaciones = services.obtener_recomendaciones_publicas(session)
-    return templates.TemplateResponse("recomendaciones.html", {
-        "request": request,
-        "recomendaciones": recomendaciones
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="recomendaciones.html",
+        context={"recomendaciones": recomendaciones}
+    )
 
 
-# ─── API USUARIOS ─────────────────────────────────────────────────────────────
+# ─── FORMULARIOS HTML ────────────────────────────────────────────────────────
+
+@app.post("/libros/crear")
+def crear_libro_form(
+    request: Request,
+    session: SessionDep,
+    title: str = Form(...),
+    author: str = Form(...),
+    isbn: str = Form(...),
+    published_year: int = Form(...),
+    cover_url: str = Form("")
+):
+    try:
+        libro = Book(
+            title=title,
+            author=author,
+            isbn=isbn,
+            published_year=published_year,
+            cover_url=cover_url if cover_url else None
+        )
+        services.crear_libro(libro, session)
+        return RedirectResponse(url="/libros", status_code=303)
+    except Exception as e:
+        libros = services.obtener_libros(session)
+        return templates.TemplateResponse(
+            request=request,
+            name="libros.html",
+            context={"libros": libros, "error": str(e)}
+        )
+
+@app.post("/libros/eliminar/{book_id}")
+def eliminar_libro_form(book_id: int, session: SessionDep):
+    services.eliminar_libro(book_id, session)
+    return RedirectResponse(url="/libros", status_code=303)
+
+@app.post("/recomendaciones/crear")
+def crear_recomendacion_form(
+    request: Request,
+    session: SessionDep,
+    user_id: int = Form(...),
+    book_id: int = Form(...),
+    short_review: str = Form(...),
+    rating: int = Form(...),
+    status: str = Form(...),
+    visibility: str = Form(...)
+):
+    try:
+        rec = BookRecommendation(
+            user_id=user_id,
+            book_id=book_id,
+            short_review=short_review,
+            rating=rating,
+            status=status,
+            visibility=visibility
+        )
+        services.crear_recomendacion(rec, session)
+        return RedirectResponse(url="/recomendaciones", status_code=303)
+    except Exception as e:
+        recomendaciones = services.obtener_recomendaciones_publicas(session)
+        return templates.TemplateResponse(
+            request=request,
+            name="recomendaciones.html",
+            context={"recomendaciones": recomendaciones, "error": str(e)}
+        )
+
+@app.post("/recomendaciones/eliminar/{rec_id}")
+def eliminar_recomendacion_form(rec_id: int, session: SessionDep):
+    services.eliminar_recomendacion(rec_id, session)
+    return RedirectResponse(url="/recomendaciones", status_code=303)
+
+
+# ─── API ─────────────────────────────────────────────────────────────────────
 
 @app.get("/api/usuarios/")
 def listar_usuarios(session: SessionDep):
@@ -61,19 +128,16 @@ def obtener_usuario(user_id: int, session: SessionDep):
     return services.obtener_usuario(user_id, session)
 
 @app.post("/api/usuarios/")
-def crear_usuario(usuario: User, session: SessionDep):
+def crear_usuario(usuario, session: SessionDep):
     return services.crear_usuario(usuario, session)
 
 @app.put("/api/usuarios/{user_id}/")
-def actualizar_usuario(user_id: int, datos: User, session: SessionDep):
+def actualizar_usuario(user_id: int, datos, session: SessionDep):
     return services.actualizar_usuario(user_id, datos, session)
 
 @app.delete("/api/usuarios/{user_id}/")
 def eliminar_usuario(user_id: int, session: SessionDep):
     return services.eliminar_usuario(user_id, session)
-
-
-# ─── API LIBROS ───────────────────────────────────────────────────────────────
 
 @app.get("/api/libros/")
 def listar_libros(session: SessionDep):
@@ -91,9 +155,6 @@ def crear_libro(libro: Book, session: SessionDep):
 def eliminar_libro(book_id: int, session: SessionDep):
     return services.eliminar_libro(book_id, session)
 
-
-# ─── API RECOMENDACIONES ──────────────────────────────────────────────────────
-
 @app.get("/api/recomendaciones/")
 def listar_recomendaciones(session: SessionDep):
     return services.obtener_recomendaciones_publicas(session)
@@ -110,62 +171,18 @@ def crear_recomendacion(rec: BookRecommendation, session: SessionDep):
 def eliminar_recomendacion(rec_id: int, session: SessionDep):
     return services.eliminar_recomendacion(rec_id, session)
 
-
-# ─── API LISTA DE LECTURA ─────────────────────────────────────────────────────
-
 @app.get("/api/lista/{user_id}/")
 def obtener_lista(user_id: int, session: SessionDep):
     return services.obtener_lista(user_id, session)
-
-@app.post("/api/lista/")
-def agregar_a_lista(item: ReadingListItem, session: SessionDep):
-    return services.agregar_a_lista(item, session)
-
-@app.delete("/api/lista/{item_id}/")
-def eliminar_de_lista(item_id: int, session: SessionDep):
-    return services.eliminar_de_lista(item_id, session)
-
-
-# ─── API COMENTARIOS ──────────────────────────────────────────────────────────
 
 @app.get("/api/comentarios/{rec_id}/")
 def obtener_comentarios(rec_id: int, session: SessionDep):
     return services.obtener_comentarios(rec_id, session)
 
-@app.post("/api/comentarios/")
-def crear_comentario(comentario: Comment, session: SessionDep):
-    return services.crear_comentario(comentario, session)
-
-@app.delete("/api/comentarios/{comment_id}/")
-def eliminar_comentario(comment_id: int, session: SessionDep):
-    return services.eliminar_comentario(comment_id, session)
-
-
-# ─── API ETIQUETAS ────────────────────────────────────────────────────────────
-
 @app.get("/api/tags/")
 def listar_tags(session: SessionDep):
     return services.obtener_tags(session)
 
-@app.post("/api/tags/")
-def crear_tag(tag: Tag, session: SessionDep):
-    return services.crear_tag(tag, session)
-
-@app.post("/api/libros/{book_id}/tags/{tag_id}/")
-def agregar_tag(book_id: int, tag_id: int, session: SessionDep):
-    return services.agregar_tag_a_libro(book_id, tag_id, session)
-
-
-# ─── API AMISTADES ────────────────────────────────────────────────────────────
-
 @app.get("/api/amistades/{user_id}/")
 def obtener_amistades(user_id: int, session: SessionDep):
     return services.obtener_amistades(user_id, session)
-
-@app.post("/api/amistades/")
-def enviar_solicitud(amistad: Friendship, session: SessionDep):
-    return services.enviar_solicitud(amistad, session)
-
-@app.put("/api/amistades/{friendship_id}/")
-def responder_solicitud(friendship_id: int, nuevo_status: str, session: SessionDep):
-    return services.responder_solicitud(friendship_id, nuevo_status, session)
